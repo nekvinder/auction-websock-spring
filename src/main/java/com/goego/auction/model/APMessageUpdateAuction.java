@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 @Entity
-public class APMessageJoinAuction {
+public class APMessageUpdateAuction {
 
   @Id
   @GeneratedValue
@@ -21,9 +21,9 @@ public class APMessageJoinAuction {
   Integer connectedUsers;
   Float currentBid;
 
-  public APMessageJoinAuction() {}
+  public APMessageUpdateAuction() {}
 
-  public APMessageJoinAuction(Auction auction) {
+  public APMessageUpdateAuction(Auction auction) {
     this.auctionId = auction.id;
     this.auctionName = auction.auctioName;
     this.remainingTime = auction.remainingTime();
@@ -38,7 +38,7 @@ public class APMessageJoinAuction {
       "[" +
       this.MESSAGE_ID +
       "," +
-      "JOIN_AUCTION" +
+      "UPDATE_AUCTION" +
       "," +
       gson.toJson(this) +
       "]";

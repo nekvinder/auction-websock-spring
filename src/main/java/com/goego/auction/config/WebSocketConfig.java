@@ -7,6 +7,7 @@ import org.springframework.web.socket.config.annotation.*;
 
 import com.goego.auction.controller.WebSocketEventListener;
 import com.goego.auction.services.APMJoinService;
+import com.goego.auction.services.APMUpdateService;
 import com.goego.auction.services.AuctionService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
 	@Autowired
 	APMJoinService apmJoinService;
 
+	@Autowired
+	APMUpdateService apmUpdateService;
+
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		registry.addHandler(new WebSocketEventListener(auctionService, apmJoinService), "/auction")
+		registry.addHandler(new WebSocketEventListener(auctionService, apmJoinService, apmUpdateService), "/auction")
 				.setAllowedOrigins("*");
 	}
 

@@ -1,14 +1,13 @@
 package com.goego.auction.controller;
 
 import com.goego.auction.model.APMessageJoinAuction;
+import com.goego.auction.model.APMessageUpdateAuction;
 import com.goego.auction.model.Auction;
 import com.goego.auction.services.APMJoinService;
+import com.goego.auction.services.APMUpdateService;
 import com.goego.auction.services.AuctionService;
-
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,54 +20,72 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @Component
 public class WebSocketEventListener extends TextWebSocketHandler {
 
-	private static final Logger logger = LoggerFactory.getLogger(WebSocketEventListener.class);
-	private Map<String, WebSocketSession> sessions = new HashMap<String, WebSocketSession>();
+  private static final Logger logger = LoggerFactory.getLogger(
+    WebSocketEventListener.class
+  );
+  private Map<String, WebSocketSession> sessions = new HashMap<String, WebSocketSession>();
 
-	@Autowired
-	AuctionService auctionService;
+  @Autowired
+  AuctionService auctionService;
 
-	@Autowired
-	APMJoinService apmJoinService;
+  @Autowired
+  APMJoinService apmJoinService;
 
-	@Autowired
+  @Autowired
+  APMUpdateService apmUpdateService;
 
-	public WebSocketEventListener(AuctionService auctionService, APMJoinService apmJoinService) {
-		this.auctionService = auctionService;
-		this.apmJoinService = apmJoinService;
+  @Autowired
+  public WebSocketEventListener(
+    AuctionService auctionService,
+    APMJoinService apmJoinService,
+    APMUpdateService apmUpdateService
+  ) {
+    this.auctionService = auctionService;
+    this.apmJoinService = apmJoinService;
+    this.apmUpdateService = apmUpdateService;
+  }
 
-	}
+  @Override
+  public void handleTextMessage(WebSocketSession session, TextMessage message)
+    throws Exception {
+    logger.info(message.getPayload());
+  }
 
-	@Override
-	public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-		logger.info(message.getPayload());
-	}
+  @Override
+  public void afterConnectionEstablished(WebSocketSession session)
+    throws Exception {
+    Auction auction = auctionService.joinUser(
+      auctionService.getLatestAuction()
+    );
 
-	@Override
-	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    //Notify this user wiht latest auction
+    APMessageJoinAuction joinMessage = new APMessageJoinAuction(auction);
+    joinMessage = apmJoinService.createOrUpdateAPMessageJoinAuction(joinMessage);
+    session.sendMessage(new TextMessage(joinMessage.toString()));
 
-		Auction auction = auctionService.getLatestAuction();
-		auction = auctionService.joinUser(auction);
+    // Notify all other with updated bid
+    APMessageUpdateAuction updateMessage = new APMessageUpdateAuction(auction);
+    updateMessage = apmUpdateService.createOrUpdateAPMessageUpdateAuction(updateMessage);
+    for (WebSocketSession userSession : sessions.values()) {
+      userSession.sendMessage(new TextMessage(updateMessage.toString()));
+    }
+    
+    // store this users session 
+    sessions.put(session.getId(), session);
+  }
 
-		APMessageJoinAuction message = new APMessageJoinAuction(auction);
-		message = apmJoinService.createOrUpdateAPMessageJoinAuction(message);
-		session.sendMessage(new TextMessage(message.toString()));
+  @Override
+  public void afterConnectionClosed(
+    WebSocketSession session,
+    CloseStatus status
+  )
+    throws Exception {
+    sessions.remove(session.getId());
 
-		//Notify all other with update bid
-		for (WebSocketSession userSession : sessions.values()) {
-			userSession.sendMessage(new TextMessage(message.toString()));
-		}
-		
-		sessions.put(session.getId(), session);
-	}
+    Auction auction = auctionService.getLatestAuction();
+    auction = auctionService.removeUser(auction);
 
-	@Override
-	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-		sessions.remove(session.getId());
-
-		Auction auction = auctionService.getLatestAuction();
-		auction = auctionService.removeUser(auction);
-
-		APMessageJoinAuction message = new APMessageJoinAuction(auction);
-		message = apmJoinService.createOrUpdateAPMessageJoinAuction(message);
-	}
+    APMessageJoinAuction message = new APMessageJoinAuction(auction);
+    message = apmJoinService.createOrUpdateAPMessageJoinAuction(message);
+  }
 }
