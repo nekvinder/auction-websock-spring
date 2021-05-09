@@ -1,6 +1,5 @@
 package com.goego.auction;
 
-import java.io.Console;
 import java.time.LocalDateTime;
 
 import javax.annotation.PostConstruct;

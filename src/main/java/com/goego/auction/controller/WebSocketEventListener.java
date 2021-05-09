@@ -2,16 +2,11 @@ package com.goego.auction.controller;
 
 import com.goego.auction.model.APMessageBidAuction;
 import com.goego.auction.model.APMessageJoinAuction;
-import com.goego.auction.model.APMessageUpdateAuction;
 import com.goego.auction.model.Auction;
 import com.goego.auction.services.AuctionService;
 import com.goego.auction.services.SessionsService;
 import com.google.gson.Gson;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
