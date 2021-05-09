@@ -85,7 +85,7 @@ public class AuctionService {
 
 	public Auction getLatestAuction() throws Exception {
 		try {
-			List<Auction> sortedList = this.getAllAuctions().stream()
+			List<Auction> sortedList = this.getAllAuctions().stream().filter(p -> !p.isExpired)
 					.sorted(Comparator.comparing(Auction::getStartedAt).reversed()).collect(Collectors.toList());
 			return sortedList.get(0);
 		} catch (Exception e) {

@@ -17,7 +17,7 @@ import com.goego.auction.services.AuctionService;
 public class InitializingAuctions {
 
 	@Autowired
-	AuctionService service; 
+	AuctionService service;
 	private static final Logger logger = LoggerFactory.getLogger(InitializingAuctions.class);
 
 	@PostConstruct
@@ -26,7 +26,7 @@ public class InitializingAuctions {
 //		expiryLate = expiryLate.plusMinutes(15);
 		expiryLate = expiryLate.plusSeconds(25);
 		try {
-			service.createOrUpdateAuction(new Auction("test1", expiryLate));
+			service.createOrUpdateAuction(new Auction("test1", expiryLate.plusMinutes(1l)));
 			service.createOrUpdateAuction(new Auction("test2", expiryLate));
 			logger.info(service.getLatestAuction().toString());
 		} catch (Exception e) {
