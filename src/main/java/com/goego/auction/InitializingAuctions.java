@@ -24,7 +24,7 @@ public class InitializingAuctions {
 	private void init() {
 		LocalDateTime expiryLate = LocalDateTime.now();
 //		expiryLate = expiryLate.plusMinutes(15);
-		expiryLate = expiryLate.plusSeconds(15);
+		expiryLate = expiryLate.plusSeconds(25);
 		try {
 			service.createOrUpdateAuction(new Auction("test1", expiryLate));
 			service.createOrUpdateAuction(new Auction("test2", expiryLate));

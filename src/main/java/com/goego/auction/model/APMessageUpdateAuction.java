@@ -18,6 +18,7 @@ public class APMessageUpdateAuction {
   Long auctionId;
   String auctionName;
   Long remainingTime;
+  Boolean isExpired;
   Integer connectedUsers;
   Float currentBid;
 
@@ -28,6 +29,7 @@ public class APMessageUpdateAuction {
     this.auctionName = auction.auctioName;
     this.remainingTime = auction.remainingTime();
     this.connectedUsers = auction.connectedUsers;
+    this.isExpired = auction.isExpired;
     this.currentBid = auction.currentBid;
   }
 

@@ -29,14 +29,13 @@ import com.google.gson.Gson;
 public class WebSocketEventListener extends TextWebSocketHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebSocketEventListener.class);
-	
 
 	@Autowired
 	AuctionService auctionService;
 
 	@Autowired
 	SessionsService sessionService;
-	
+
 	@Autowired
 	APMJoinService apmJoinService;
 
@@ -45,11 +44,11 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 
 	@Autowired
 	public WebSocketEventListener(AuctionService auctionService, APMJoinService apmJoinService,
-			APMUpdateService apmUpdateService,SessionsService sessionService) {
+			APMUpdateService apmUpdateService, SessionsService sessionService) {
 		this.auctionService = auctionService;
 		this.apmJoinService = apmJoinService;
 		this.apmUpdateService = apmUpdateService;
-		this.sessionService= sessionService;
+		this.sessionService = sessionService;
 	}
 
 	@Override
@@ -90,17 +89,13 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 		sessionService.broadcastAuctionToSessions(auction);
 
 		// store this users session
-		sessionService.sessions.put(session.getId(), session);
+		sessionService.addSession(auction, session);
 	}
-
-	
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-		
-		sessionService.sessions.remove(session.getId());
+		sessionService.removeSession(session);
 		sessionService.sessionEndAuctionUpdate();
 	}
 
-	
 }

@@ -25,13 +25,43 @@ public class SessionsService {
 	@Autowired
 	AuctionService auctionService;
 
-	public Map<String, WebSocketSession> sessions = new HashMap<String, WebSocketSession>();
+	private Map<String, Map<String, WebSocketSession>> sessions = new HashMap<String, Map<String, WebSocketSession>>();
+
+	public void addSession(Auction auction, WebSocketSession session) {
+		if (!sessions.containsKey(auction.id.toString())) {
+			sessions.put(auction.id.toString(), new HashMap<String, WebSocketSession>());
+		}
+		Map<String, WebSocketSession> auctionSessions = sessions.get(auction.id.toString());
+		auctionSessions.put(session.getId(), session);
+	}
+
+	public void removeSession(WebSocketSession session) {
+		for (Map<String, WebSocketSession> auctionSessions : sessions.values()) {
+			if (auctionSessions.containsKey(session.getId())) {
+				auctionSessions.remove(session.getId());
+			}
+		}
+
+	}
+
+	public Map<String, WebSocketSession> getSessions(Auction auction) {
+		if (sessions.containsKey(auction.id.toString())) {
+			Map<String, WebSocketSession> auctionList = sessions.get(auction.id.toString());
+			if (auctionList.size() > 0) {
+				return auctionList;
+			} else {
+				return new HashMap<String, WebSocketSession>();
+			}
+		} else {
+			return new HashMap<String, WebSocketSession>();
+		}
+	}
 
 	public void broadcastAuctionToSessions(Auction auction) throws Exception, IOException {
 		System.out.println("Broadcasting " + auction.auctioName);
 		APMessageUpdateAuction updateMessage = new APMessageUpdateAuction(auction);
 		updateMessage = apmUpdateService.createOrUpdateAPMessageUpdateAuction(updateMessage);
-		for (WebSocketSession userSession : sessions.values()) {
+		for (WebSocketSession userSession : getSessions(auction).values()) {
 			if (userSession.isOpen()) {
 				userSession.sendMessage(new TextMessage(updateMessage.toString()));
 			} else {
