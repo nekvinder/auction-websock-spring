@@ -27,7 +27,7 @@ public class InitializingAuctions {
 		try {
 			service.createOrUpdateAuction(new Auction("test1", expiryLate));
 			service.createOrUpdateAuction(new Auction("test2", expiryLate));
-			logger.info(service.getLatestAuction().getJSON());
+			logger.info(service.getLatestAuction().toString());
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}

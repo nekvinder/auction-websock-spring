@@ -54,11 +54,29 @@ public class AuctionService {
 		}
 	}
 
-	public Auction getLatestAuction() throws Exception{
+	public Auction getLatestAuction() throws Exception {
 		try {
-			List<Auction> sortedList = this.getAllAuctions().stream().sorted(Comparator.comparing(Auction::getStartedAt).reversed())
-					.collect(Collectors.toList());
+			List<Auction> sortedList = this.getAllAuctions().stream()
+					.sorted(Comparator.comparing(Auction::getStartedAt).reversed()).collect(Collectors.toList());
 			return sortedList.get(0);
+		} catch (Exception e) {
+			throw new Exception("No auction exists");
+		}
+	}
+
+	public Auction joinUser(Auction auction) throws Exception {
+		try {
+			auction.connectedUsers++;
+			return this.createOrUpdateAuction(auction);
+		} catch (Exception e) {
+			throw new Exception("No auction exists");
+		}
+	}
+	
+	public Auction removeUser(Auction auction) throws Exception {
+		try {
+			auction.connectedUsers--;
+			return this.createOrUpdateAuction(auction);
 		} catch (Exception e) {
 			throw new Exception("No auction exists");
 		}

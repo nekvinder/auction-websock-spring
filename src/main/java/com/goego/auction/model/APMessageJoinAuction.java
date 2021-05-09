@@ -2,6 +2,7 @@ package com.goego.auction.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.goego.auction.model.APMessage.ActionType;
 import com.google.gson.Gson;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+import org.json.JSONObject;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -24,52 +26,36 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-@Getter
-@Setter
 @Data
 @Entity
-public class Auction {
+public class APMessageJoinAuction {
 
 	@Id
 	@GeneratedValue
-	Long id;
+	UUID MESSAGE_ID;
 
-	String auctioName;
-	LocalDateTime expiry;
+	Long auctionId;
+	String auctionName;
+	Long remainingTime;
+	Integer connectedUsers;
 	Float currentBid;
-	public Integer connectedUsers;
 
-	@CreatedDate
-	LocalDateTime startedAt;
-
-
-	public Boolean isExpired() {
-		return this.expiry.isBefore(LocalDateTime.now());
+	public APMessageJoinAuction() {
 	}
 
-	public Long remainingTime() {
-		Duration duration = Duration.between(LocalDateTime.now(),this.expiry);
-		return duration.getSeconds();
-	}
-
-	public LocalDateTime getStartedAt() {
-		return this.startedAt;
-	}
-
-	
-	public Auction() {}
-	
-	public Auction(String auctionName, LocalDateTime expiry) {
-		this.auctioName = auctionName;
-		this.expiry = expiry;
-		this.currentBid = 0.0f;
-		this.connectedUsers= 0;
-		this.startedAt = LocalDateTime.now();
+	public APMessageJoinAuction(Auction auction) {
+		this.auctionId = auction.id;
+		this.auctionName = auction.auctioName;
+		this.remainingTime = auction.remainingTime();
+		this.connectedUsers = auction.connectedUsers;
+		this.currentBid = auction.currentBid;
 	}
 
 	@Override
 	public String toString() {
 		Gson gson = new Gson();
-		return gson.toJson(this);
+		String response = "[" + this.MESSAGE_ID + "," + "JOIN_AUCTION" + "," + gson.toJson(this) + "]";
+		return response;
 	}
+
 }

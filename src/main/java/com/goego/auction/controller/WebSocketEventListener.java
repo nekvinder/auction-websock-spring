@@ -1,9 +1,12 @@
 package com.goego.auction.controller;
 
+import com.goego.auction.model.APMessageJoinAuction;
 import com.goego.auction.model.Auction;
+import com.goego.auction.services.APMJoinService;
 import com.goego.auction.services.AuctionService;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -22,12 +25,17 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 	private Map<String, WebSocketSession> sessions = new HashMap<String, WebSocketSession>();
 
 	@Autowired
-	AuctionService service;
+	AuctionService auctionService;
+
+	@Autowired
+	APMJoinService apmJoinService;
 
 	@Autowired
 
-	public WebSocketEventListener(AuctionService service) {
-		this.service = service;
+	public WebSocketEventListener(AuctionService auctionService, APMJoinService apmJoinService) {
+		this.auctionService = auctionService;
+		this.apmJoinService = apmJoinService;
+
 	}
 
 	@Override
@@ -37,13 +45,30 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+
+		Auction auction = auctionService.getLatestAuction();
+		auction = auctionService.joinUser(auction);
+
+		APMessageJoinAuction message = new APMessageJoinAuction(auction);
+		message = apmJoinService.createOrUpdateAPMessageJoinAuction(message);
+		session.sendMessage(new TextMessage(message.toString()));
+
+		//Notify all other with update bid
+		for (WebSocketSession userSession : sessions.values()) {
+			userSession.sendMessage(new TextMessage(message.toString()));
+		}
+		
 		sessions.put(session.getId(), session);
-		Auction auction = service.getLatestAuction();
-		session.sendMessage(new TextMessage(auction.getJSON()));
 	}
 
 	@Override
-	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 		sessions.remove(session.getId());
+
+		Auction auction = auctionService.getLatestAuction();
+		auction = auctionService.removeUser(auction);
+
+		APMessageJoinAuction message = new APMessageJoinAuction(auction);
+		message = apmJoinService.createOrUpdateAPMessageJoinAuction(message);
 	}
 }

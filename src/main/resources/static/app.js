@@ -12,7 +12,8 @@ function connect () {
 		console.log("open", e);
 	};
 	ws.onmessage = function (e) {
-		console.log("msg", JSON.parse(e.data));
+		console.log("msg raw", e.data);
+		console.log("msg parsed", JSON.parse(e.data));
 	};
 	ws.onerror = function (e) {
 		console.log("error", e);
