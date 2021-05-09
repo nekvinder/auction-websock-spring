@@ -45,7 +45,6 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 		this.auctionService = auctionService;
 		this.apmJoinService = apmJoinService;
 		this.apmUpdateService = apmUpdateService;
-
 	}
 
 	@Override
@@ -59,9 +58,6 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 			Gson gson = new Gson();
 			String jsonData = msg.substring(splitMsg[0].length() + splitMsg[1].length() + 2);
 			APMessageBidAuction bidMessage = gson.fromJson(jsonData, APMessageBidAuction.class);
-			logger.info(msg);
-			logger.info(jsonData);
-			logger.info(bidMessage.newBid.toString());
 			Auction auction = (auctionService.getAuctionById(bidMessage.auctionId));
 			if (auction.currentBid < bidMessage.newBid) {
 				auction.currentBid = bidMessage.newBid;
