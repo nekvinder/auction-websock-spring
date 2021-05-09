@@ -3,8 +3,6 @@ package com.goego.auction.services;
 import com.goego.auction.model.APMessageJoinAuction;
 import com.goego.auction.model.APMessageUpdateAuction;
 import com.goego.auction.model.Auction;
-
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,13 +30,14 @@ public class SessionsService {
 		auctionSessions.put(session.getId(), session);
 	}
 
-	public void removeSession(WebSocketSession session) {
-		for (Map<String, WebSocketSession> auctionSessions : sessions.values()) {
-			if (auctionSessions.containsKey(session.getId())) {
-				auctionSessions.remove(session.getId());
+	public String removeSession(WebSocketSession session) {
+		for (Map.Entry<String, Map<String, WebSocketSession>> auctionSessions : sessions.entrySet()) {
+			if (auctionSessions.getValue().containsKey(session.getId())) {
+				auctionSessions.getValue().remove(session.getId());
+				return  auctionSessions.getKey();
 			}
 		}
-
+		return "";
 	}
 
 	public Map<String, WebSocketSession> getSessions(Auction auction) {
@@ -61,13 +60,12 @@ public class SessionsService {
 			if (userSession.isOpen()) {
 				userSession.sendMessage(new TextMessage(updateMessage.toString()));
 			} else {
-				sessionEndAuctionUpdate();
+				sessionEndAuctionUpdate(auction);
 			}
 		}
 	}
 
-	public void sessionEndAuctionUpdate() throws Exception, IOException {
-		Auction auction = auctionService.getLatestAuction();
+	public void sessionEndAuctionUpdate(Auction auction) throws Exception, IOException {
 		auction = auctionService.removeUser(auction);
 		broadcastAuctionToSessions(auction);
 	}

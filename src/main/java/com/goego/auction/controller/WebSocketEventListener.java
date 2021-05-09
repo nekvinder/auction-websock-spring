@@ -64,22 +64,22 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-		Auction auction = auctionService.joinUser(auctionService.getLatestAuction());
+		Auction curentAuction = auctionService.joinUser(auctionService.getLatestAuction());
 
 		// Notify this user wiht latest auction
-		APMessageJoinAuction joinMessage = new APMessageJoinAuction(auction);
+		APMessageJoinAuction joinMessage = new APMessageJoinAuction(curentAuction);
 		session.sendMessage(new TextMessage(joinMessage.toString()));
 
 		// Notify all other with updated bid
-		sessionService.broadcastAuctionToSessions(auction);
+		sessionService.broadcastAuctionToSessions(curentAuction);
 
 		// store this users session
-		sessionService.addSession(auction, session);
+		sessionService.addSession(curentAuction, session);
 	}
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-		sessionService.removeSession(session);
-		sessionService.sessionEndAuctionUpdate();
+		String leftFromAuctionId = sessionService.removeSession(session);
+		sessionService.sessionEndAuctionUpdate(auctionService.getAuctionById(Long.parseLong(leftFromAuctionId)));
 	}
 }
