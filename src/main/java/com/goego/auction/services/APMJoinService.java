@@ -27,11 +27,10 @@ public class APMJoinService {
   public APMessageJoinAuction getAPMessageJoinAuctionById(Long id)
     throws Exception {
     Optional<APMessageJoinAuction> auction = repository.findById(id);
-
     if (auction.isPresent()) {
       return auction.get();
     } else {
-      throw new Exception("No auction record exist for given id");
+      throw new Exception("No auction record exists for given id");
     }
   }
 
