@@ -63,7 +63,7 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 				auction.currentBid = bidMessage.newBid;
 				auction = auctionService.createOrUpdateAuction(auction);
 				broadcastAuctionToSessions(auction);
-			}else {
+			} else {
 				logger.info("Smaller bid , no changes applicable");
 			}
 
@@ -92,18 +92,23 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 		APMessageUpdateAuction updateMessage = new APMessageUpdateAuction(auction);
 		updateMessage = apmUpdateService.createOrUpdateAPMessageUpdateAuction(updateMessage);
 		for (WebSocketSession userSession : sessions.values()) {
-			userSession.sendMessage(new TextMessage(updateMessage.toString()));
+			if (userSession.isOpen()) {
+				userSession.sendMessage(new TextMessage(updateMessage.toString()));
+			}else {
+				sessionEndAuctionUpdate();
+			}
 		}
 	}
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 		sessions.remove(session.getId());
+		sessionEndAuctionUpdate();
+	}
 
+	private void sessionEndAuctionUpdate() throws Exception, IOException {
 		Auction auction = auctionService.getLatestAuction();
 		auction = auctionService.removeUser(auction);
-
-		APMessageJoinAuction message = new APMessageJoinAuction(auction);
-		message = apmJoinService.createOrUpdateAPMessageJoinAuction(message);
+		broadcastAuctionToSessions(auction);
 	}
 }
