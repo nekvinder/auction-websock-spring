@@ -61,12 +61,9 @@ public class AuctionService {
 				try {
 					Auction latestAuction = service.getAuctionById(auction.id);
 					latestAuction.updateAuctionExipryStatus();
-
 					service.createOrUpdateAuction(latestAuction);
 					sessionService.broadcastAuctionToSessions(latestAuction);
-
 				} catch (Exception e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 

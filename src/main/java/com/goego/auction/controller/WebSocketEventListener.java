@@ -97,6 +97,7 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+		
 		sessionService.sessions.remove(session.getId());
 		sessionService.sessionEndAuctionUpdate();
 	}
