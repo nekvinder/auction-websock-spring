@@ -23,10 +23,9 @@ public class InitializingAuctions {
 	@PostConstruct
 	private void init() {
 		LocalDateTime expiryLate = LocalDateTime.now();
-//		expiryLate = expiryLate.plusMinutes(15);
-		expiryLate = expiryLate.plusSeconds(25);
+		expiryLate = expiryLate.plusMinutes(2);
 		try {
-			service.createOrUpdateAuction(new Auction("test1", expiryLate.plusMinutes(1l)));
+			service.createOrUpdateAuction(new Auction("test1", expiryLate.plusMinutes(4l)));
 			service.createOrUpdateAuction(new Auction("test2", expiryLate));
 			logger.info(service.getLatestAuction().toString());
 		} catch (Exception e) {
