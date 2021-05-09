@@ -22,17 +22,21 @@ import com.goego.auction.model.Auction;
 import com.goego.auction.services.APMJoinService;
 import com.goego.auction.services.APMUpdateService;
 import com.goego.auction.services.AuctionService;
+import com.goego.auction.services.SessionsService;
 import com.google.gson.Gson;
 
 @Component
 public class WebSocketEventListener extends TextWebSocketHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebSocketEventListener.class);
-	private Map<String, WebSocketSession> sessions = new HashMap<String, WebSocketSession>();
+	
 
 	@Autowired
 	AuctionService auctionService;
 
+	@Autowired
+	SessionsService sessionService;
+	
 	@Autowired
 	APMJoinService apmJoinService;
 
@@ -41,10 +45,11 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 
 	@Autowired
 	public WebSocketEventListener(AuctionService auctionService, APMJoinService apmJoinService,
-			APMUpdateService apmUpdateService) {
+			APMUpdateService apmUpdateService,SessionsService sessionService) {
 		this.auctionService = auctionService;
 		this.apmJoinService = apmJoinService;
 		this.apmUpdateService = apmUpdateService;
+		this.sessionService= sessionService;
 	}
 
 	@Override
@@ -62,7 +67,7 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 			if (auction.currentBid < bidMessage.newBid) {
 				auction.currentBid = bidMessage.newBid;
 				auction = auctionService.createOrUpdateAuction(auction);
-				broadcastAuctionToSessions(auction);
+				sessionService.broadcastAuctionToSessions(auction);
 			} else {
 				logger.info("Smaller bid , no changes applicable");
 			}
@@ -82,33 +87,19 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 		session.sendMessage(new TextMessage(joinMessage.toString()));
 
 		// Notify all other with updated bid
-		broadcastAuctionToSessions(auction);
+		sessionService.broadcastAuctionToSessions(auction);
 
 		// store this users session
-		sessions.put(session.getId(), session);
+		sessionService.sessions.put(session.getId(), session);
 	}
 
-	private void broadcastAuctionToSessions(Auction auction) throws Exception, IOException {
-		APMessageUpdateAuction updateMessage = new APMessageUpdateAuction(auction);
-		updateMessage = apmUpdateService.createOrUpdateAPMessageUpdateAuction(updateMessage);
-		for (WebSocketSession userSession : sessions.values()) {
-			if (userSession.isOpen()) {
-				userSession.sendMessage(new TextMessage(updateMessage.toString()));
-			}else {
-				sessionEndAuctionUpdate();
-			}
-		}
-	}
+	
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-		sessions.remove(session.getId());
-		sessionEndAuctionUpdate();
+		sessionService.sessions.remove(session.getId());
+		sessionService.sessionEndAuctionUpdate();
 	}
 
-	private void sessionEndAuctionUpdate() throws Exception, IOException {
-		Auction auction = auctionService.getLatestAuction();
-		auction = auctionService.removeUser(auction);
-		broadcastAuctionToSessions(auction);
-	}
+	
 }

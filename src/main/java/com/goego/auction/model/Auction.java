@@ -17,44 +17,48 @@ import org.springframework.data.annotation.CreatedDate;
 @Entity
 public class Auction {
 
-  @Id
-  @GeneratedValue
-  public Long id;
+	@Id
+	@GeneratedValue
+	public Long id;
 
-  public String auctioName;
-  public LocalDateTime expiry;
-  public Float currentBid;
-  public Integer connectedUsers;
+	public String auctioName;
+	public LocalDateTime expiry;
+	public Boolean isExpired;
+	public Float currentBid;
+	public Integer connectedUsers;
 
-  @CreatedDate
-  public LocalDateTime startedAt;
+	@CreatedDate
+	public LocalDateTime startedAt;
 
-  public Boolean isExpired() {
-    return this.expiry.isBefore(LocalDateTime.now());
-  }
+	public Boolean updateAuctionExipryStatus() {
+		this.isExpired = this.expiry.isBefore(LocalDateTime.now());
+		return this.isExpired;
+	}
 
-  public Long remainingTime() {
-    Duration duration = Duration.between(LocalDateTime.now(), this.expiry);
-    return duration.getSeconds();
-  }
+	public Long remainingTime() {
+		Duration duration = Duration.between(LocalDateTime.now(), this.expiry);
+		return duration.getSeconds();
+	}
 
-  public LocalDateTime getStartedAt() {
-    return this.startedAt;
-  }
+	public LocalDateTime getStartedAt() {
+		return this.startedAt;
+	}
 
-  public Auction() {}
+	public Auction() {
+	}
 
-  public Auction(String auctionName, LocalDateTime expiry) {
-    this.auctioName = auctionName;
-    this.expiry = expiry;
-    this.currentBid = 0.0f;
-    this.connectedUsers = 0;
-    this.startedAt = LocalDateTime.now();
-  }
+	public Auction(String auctionName, LocalDateTime expiry) {
+		this.auctioName = auctionName;
+		this.expiry = expiry;
+		this.isExpired = this.updateAuctionExipryStatus();
+		this.currentBid = 0.0f;
+		this.connectedUsers = 0;
+		this.startedAt = LocalDateTime.now();
+	}
 
-  @Override
-  public String toString() {
-    Gson gson = new Gson();
-    return gson.toJson(this);
-  }
+	@Override
+	public String toString() {
+		Gson gson = new Gson();
+		return gson.toJson(this);
+	}
 }

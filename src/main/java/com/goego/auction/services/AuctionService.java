@@ -5,11 +5,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.goego.auction.controller.WebSocketEventListener;
 import com.goego.auction.model.Auction;
 import com.goego.auction.repositories.AuctionRepository;
 
@@ -18,6 +22,9 @@ public class AuctionService {
 
 	@Autowired
 	AuctionRepository repository;
+
+	@Autowired
+	SessionsService sessionService;
 
 	public List<Auction> getAllAuctions() {
 		List<Auction> auctionList = repository.findAll();
@@ -40,8 +47,33 @@ public class AuctionService {
 	}
 
 	public Auction createOrUpdateAuction(Auction entity) throws Exception {
+		if (entity.id == null) {
+			startExpireAuctionScheduler(entity, this);
+		}
 		entity = repository.save(entity);
 		return entity;
+	}
+
+	public void startExpireAuctionScheduler(Auction auction, AuctionService service) {
+		ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+		Runnable task = new Runnable() {
+			public void run() {
+				try {
+					Auction latestAuction = service.getAuctionById(auction.id);
+					latestAuction.updateAuctionExipryStatus();
+
+					service.createOrUpdateAuction(latestAuction);
+					sessionService.broadcastAuctionToSessions(latestAuction);
+
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+			}
+		};
+		scheduler.schedule(task, auction.remainingTime() + 1, TimeUnit.SECONDS);
+		scheduler.shutdown();
 	}
 
 	public void deleteAuctionById(Long id) throws Exception {
@@ -72,7 +104,7 @@ public class AuctionService {
 			throw new Exception("No auction exists");
 		}
 	}
-	
+
 	public Auction removeUser(Auction auction) throws Exception {
 		try {
 			auction.connectedUsers--;
