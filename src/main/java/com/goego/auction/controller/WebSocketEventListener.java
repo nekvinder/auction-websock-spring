@@ -24,16 +24,22 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 	@Autowired
 	AuctionService service;
 
+	@Autowired
+
+	public WebSocketEventListener(AuctionService service) {
+		this.service = service;
+	}
+
 	@Override
 	public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-		Auction auction = service.getLatestAuction();
-		session.sendMessage(new TextMessage(auction.getJSON()));
+		logger.info(message.getPayload());
 	}
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 		sessions.put(session.getId(), session);
-
+		Auction auction = service.getLatestAuction();
+		session.sendMessage(new TextMessage(auction.getJSON()));
 	}
 
 	@Override

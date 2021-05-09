@@ -54,9 +54,14 @@ public class AuctionService {
 		}
 	}
 
-	public Auction getLatestAuction() {
-//		List<Auction> sortedList = Collections.sort(this.getAllAuctions());
-		return this.getAllAuctions().get(0);
+	public Auction getLatestAuction() throws Exception{
+		try {
+			List<Auction> sortedList = this.getAllAuctions().stream().sorted(Comparator.comparing(Auction::getStartedAt).reversed())
+					.collect(Collectors.toList());
+			return sortedList.get(0);
+		} catch (Exception e) {
+			throw new Exception("No auction exists");
+		}
 	}
 
 }

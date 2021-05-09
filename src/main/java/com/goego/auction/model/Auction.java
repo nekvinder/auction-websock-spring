@@ -18,13 +18,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-@Entity @Getter @Setter @NoArgsConstructor @AllArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@Data
+@Entity
 public class Auction {
 
 	@Id
@@ -49,6 +50,13 @@ public class Auction {
 		return duration.getSeconds();
 	}
 
+	public LocalDateTime getStartedAt() {
+		return this.startedAt;
+	}
+
+	
+	public Auction() {}
+	
 	public Auction(String auctionName, LocalDateTime expiry) {
 		this.auctioName = auctionName;
 		this.expiry = expiry;
