@@ -3,7 +3,7 @@ package com.goego.auction.services;
 import com.goego.auction.model.APMessageJoinAuction;
 import com.goego.auction.model.APMessageUpdateAuction;
 import com.goego.auction.model.Auction;
-import com.goego.auction.repositories.APMJoinRepository;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,9 +18,6 @@ import org.springframework.web.socket.WebSocketSession;
 
 @Service("sessionsService")
 public class SessionsService {
-
-	@Autowired
-	APMUpdateService apmUpdateService;
 
 	@Autowired
 	AuctionService auctionService;
@@ -60,7 +57,6 @@ public class SessionsService {
 	public void broadcastAuctionToSessions(Auction auction) throws Exception, IOException {
 		System.out.println("Broadcasting " + auction.auctioName);
 		APMessageUpdateAuction updateMessage = new APMessageUpdateAuction(auction);
-		updateMessage = apmUpdateService.createOrUpdateAPMessageUpdateAuction(updateMessage);
 		for (WebSocketSession userSession : getSessions(auction).values()) {
 			if (userSession.isOpen()) {
 				userSession.sendMessage(new TextMessage(updateMessage.toString()));
