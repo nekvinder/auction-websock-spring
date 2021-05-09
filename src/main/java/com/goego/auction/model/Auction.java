@@ -19,15 +19,15 @@ public class Auction {
 
   @Id
   @GeneratedValue
-  Long id;
+  public Long id;
 
-  String auctioName;
-  LocalDateTime expiry;
-  Float currentBid;
+  public String auctioName;
+  public LocalDateTime expiry;
+  public Float currentBid;
   public Integer connectedUsers;
 
   @CreatedDate
-  LocalDateTime startedAt;
+  public LocalDateTime startedAt;
 
   public Boolean isExpired() {
     return this.expiry.isBefore(LocalDateTime.now());

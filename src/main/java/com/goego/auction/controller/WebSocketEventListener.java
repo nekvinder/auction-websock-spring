@@ -1,5 +1,6 @@
 package com.goego.auction.controller;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -61,6 +62,15 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 			logger.info(msg);
 			logger.info(jsonData);
 			logger.info(bidMessage.newBid.toString());
+			Auction auction = (auctionService.getAuctionById(bidMessage.auctionId));
+			if (auction.currentBid < bidMessage.newBid) {
+				auction.currentBid = bidMessage.newBid;
+				auction = auctionService.createOrUpdateAuction(auction);
+				broadcastAuctionToSessions(auction);
+			}else {
+				logger.info("Smaller bid , no changes applicable");
+			}
+
 		} else {
 			throw new Exception("Unknown Action Type" + actionType);
 		}
@@ -76,14 +86,18 @@ public class WebSocketEventListener extends TextWebSocketHandler {
 		session.sendMessage(new TextMessage(joinMessage.toString()));
 
 		// Notify all other with updated bid
+		broadcastAuctionToSessions(auction);
+
+		// store this users session
+		sessions.put(session.getId(), session);
+	}
+
+	private void broadcastAuctionToSessions(Auction auction) throws Exception, IOException {
 		APMessageUpdateAuction updateMessage = new APMessageUpdateAuction(auction);
 		updateMessage = apmUpdateService.createOrUpdateAPMessageUpdateAuction(updateMessage);
 		for (WebSocketSession userSession : sessions.values()) {
 			userSession.sendMessage(new TextMessage(updateMessage.toString()));
 		}
-
-		// store this users session
-		sessions.put(session.getId(), session);
 	}
 
 	@Override
